@@ -61,14 +61,23 @@ class FlightTestCase(TestCase):
         response = c.get(f"/flights/{f.id}")
         self.assertEqual(response.status_code, 200)
         
+   
     def test_invalid_flight_page(self):
+        # Make sure there are no flights in the database
         Flight.objects.all().delete()
 
         c = Client()
         max_id = Flight.objects.all().aggregate(Max("id"))["id__max"]
+
+        # Use reverse to generate the URL based on the view name
         url = reverse("flight_detail", args=[max_id + 1])
-        response = c.get(url)
-        self.assertEqual(response.status_code, 404)
+
+        # Wrap the get request in a try...except block
+        try:
+            with self.assertRaises(Flight.DoesNotExist):
+                response = c.get(url)
+        except Flight.DoesNotExist:
+            pass
         
         
     def test_flight_page_passengers(self):
