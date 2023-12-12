@@ -1,5 +1,6 @@
 from django.test import TestCase , Client
 from django.db.models import Max
+from django.urls import reverse
 
 from .models import Airport, Flight, Passenger
 # Create your tests here.
@@ -61,11 +62,12 @@ class FlightTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         
     def test_invalid_flight_page(self):
-        max_id = Flight.objects.all().aggregate(Max("id"))["id__max"]
-        
-        
+        Flight.objects.all().delete()
+
         c = Client()
-        response = c.get(f"/flights/{max_id + 1}")
+        max_id = Flight.objects.all().aggregate(Max("id"))["id__max"]
+        url = reverse("flight_detail", args=[max_id + 1])
+        response = c.get(url)
         self.assertEqual(response.status_code, 404)
         
         
